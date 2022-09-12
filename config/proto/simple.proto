@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package simple;
+
+//@@
+//@@   Sensor measurement for demonstrating Sensor -> RedPanda -> Model Microservice -> Triton -> RedPanda
+//@@
+message SimpleMeasurement {
+    repeated int32 input0 = 1;
+    repeated int32 input1 = 2;
+}
+
+//@@
+//@@   Inference result for demonstrating Sensor -> RedPanda -> Model Microservice -> Triton -> RedPanda
+//@@
+message SimpleInferenceResult {
+    repeated int32 output0 = 1;
+    repeated int32 output1 = 2;
+}

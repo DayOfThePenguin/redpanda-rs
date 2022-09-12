@@ -1,0 +1,96 @@
+version: "3.8"
+
+services:
+  redpanda-0:
+    image: vectorized/redpanda:v22.2.2
+    container_name: panda-0
+    ports:
+      - '9010:9010'
+      - '8081:8081' # schema registry port that RedPanda Console connects to...look in config/console-config.yaml
+    command:
+      - redpanda
+      - start
+      - --smp 1
+      - --memory 1G
+      - --reserve-memory 0M
+      - --overprovisioned
+      - --node-id 0
+      - --check=false
+      - --kafka-addr PLAINTEXT://0.0.0.0:29092,EXTERNAL://0.0.0.0:9010,FOR_PROXY://0.0.0.0:9020
+      - --advertise-kafka-addr PLAINTEXT://redpanda-0:29092,EXTERNAL://127.0.0.1:9010,FOR_PROXY://redpanda-0:9020
+      - --rpc-addr 0.0.0.0:33145
+      - --advertise-rpc-addr redpanda-0:33145
+
+  redpanda-1:
+    image: vectorized/redpanda:v22.2.2
+    container_name: panda-1
+    ports:
+      - '9011:9011'
+    command:
+      - redpanda
+      - start
+      - --smp 1
+      - --memory 1G
+      - --reserve-memory 0M
+      - --overprovisioned
+      - --node-id 1
+      - --seeds "redpanda-0:33145"
+      - --check=false
+      - --kafka-addr PLAINTEXT://0.0.0.0:29092,EXTERNAL://0.0.0.0:9011,FOR_PROXY://0.0.0.0:9021
+      - --advertise-kafka-addr PLAINTEXT://redpanda-1:29092,EXTERNAL://127.0.0.1:9011,FOR_PROXY://redpanda-1:9021
+      - --rpc-addr 0.0.0.0:33145
+      - --advertise-rpc-addr redpanda-1:33145
+    depends_on:
+      - redpanda-0
+
+  redpanda-2:
+    image: vectorized/redpanda:v22.2.2
+    container_name: panda-2
+    ports:
+      - '9012:9012'
+    command:
+      - redpanda
+      - start
+      - --smp 1
+      - --memory 1G
+      - --reserve-memory 0M
+      - --overprovisioned
+      - --node-id 2
+      - --seeds "redpanda-0:33145"
+      - --check=false
+      - --kafka-addr PLAINTEXT://0.0.0.0:29092,EXTERNAL://0.0.0.0:9012,FOR_PROXY://0.0.0.0:9022
+      - --advertise-kafka-addr PLAINTEXT://redpanda-2:29092,EXTERNAL://127.0.0.1:9012,FOR_PROXY://redpanda-2:9022
+      - --rpc-addr 0.0.0.0:33145
+      - --advertise-rpc-addr redpanda-2:33145
+    depends_on:
+      - redpanda-0
+
+  console:
+    image: vectorized/console:latest
+    container_name: panda-console
+    restart: on-failure
+    volumes:
+      - ./config/console-config.yaml:/docker-volume/config.yaml:rw
+      - ./config/proto:/docker-volume/proto
+    environment:
+      CONFIG_FILEPATH: /docker-volume/config.yaml
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redpanda-0
+
+  minio:
+    container_name: minio-panda
+    image: quay.io/minio/minio:latest
+    restart: unless-stopped
+    shm_size: 2gb
+    environment:
+      MINIO_ROOT_USER: redpanda
+      MINIO_ROOT_PASSWORD: panda12345
+      MINIO_DOMAIN: minio-s3
+      MINIO_REGION_NAME: panda-region
+    ports: 
+      - "9000:9000"
+      - "9001:9001"
+    entrypoint: sh
+    command: -c 'mkdir -p /data/panda-bucket && minio server /data --console-address "0.0.0.0:9001"'

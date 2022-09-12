@@ -1,0 +1,25 @@
+[package]
+name = "redpanda"
+version = "0.1.0"
+authors = ["Colin Dablain"]
+description = "A crate for interacting with RedPanda Message Brokers"
+readme = "README.md"
+repository = "https://github.com/DayOfThePenguin/redpanda-rs"
+license = "Apache-2.0"
+license-file = "LICENSE.txt"
+keywords = ["redpanda", "kafka", "redpanda-rs"]
+categories = ["api-bindings"]
+exclude = ["Cargo.lock"]
+edition = "2021"
+
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rskafka = { version = "0.3", features = ["full"] }
+# pin to version of rdkafka that's passed CI, uses most recent version of librdkafka, but hasn't been merged into the
+# main branch of rdkafka
+# rdkafka = { git = "https://github.com/gyfis/rust-rdkafka", branch = "g/librdkafka-1.9.0", features = ["zlib"]}
+rdkafka ={ version = "*", features = ["zlib"]}
+tracing = "0.1"
+tracing-subscriber = "0.2"
