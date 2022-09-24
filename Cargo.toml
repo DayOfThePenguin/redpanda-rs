@@ -16,10 +16,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rskafka = { version = "0.3", features = ["full"] }
+tokio = { version = "1", features = ["full"] }
+futures = "0.3"
 # pin to version of rdkafka that's passed CI, uses most recent version of librdkafka, but hasn't been merged into the
 # main branch of rdkafka
-# rdkafka = { git = "https://github.com/gyfis/rust-rdkafka", branch = "g/librdkafka-1.9.0", features = ["zlib"]}
-rdkafka ={ version = "*", features = ["zlib"]}
+rdkafka = { git = "https://github.com/gyfis/rust-rdkafka", branch = "g/librdkafka-1.9.0", features = ["zstd", "tracing"]}
 tracing = "0.1"
-tracing-subscriber = "0.2"
+tracing-subscriber = "0.3"
+tracing-test = "0.1"
