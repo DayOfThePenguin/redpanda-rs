@@ -1,68 +1,24 @@
 use rdkafka::config::RDKafkaLogLevel;
-use rdkafka::consumer::Consumer;
-use rdkafka::error::KafkaError;
-use rdkafka::message::OwnedMessage;
-use rdkafka::metadata::Metadata;
 use rdkafka::types::RDKafkaErrorCode;
 use rdkafka::util::Timeout;
 use tracing::{event, instrument, Level};
 use tracing_test::traced_test;
 
-use crate::{metadata::RedPandaMetadata, RedPandaBuilder};
+use crate::{builder::RedPandaBuilder, metadata::RedPandaMetadata};
 use std::time::Duration;
 
-fn setup_trace() {
-    // construct a subscriber that prints formatted traces to stdout
-    let subscriber = tracing_subscriber::fmt().compact().pretty().finish();
-    // use that subscriber to process traces emitted after this point
-    tracing::subscriber::set_global_default(subscriber).expect("Failed to set tracing subscriber");
-}
-
-#[test]
-pub fn test_builder() {
-    let mut b = RedPandaBuilder::new();
-    b.set_bootstrap_servers("localhost:9012");
-    println!("{:?}", b);
-}
-
-// Only fails on ports <1024.
-// Even if no broker is running, this will complete
+/// Does RedPandaConsumer fail to construct with the proper error code if the bootstrap_server doesn't exist?
 #[tokio::test]
 #[traced_test]
-pub async fn test_connection() {
-    let mut b = RedPandaBuilder::new();
-    // Assumes you don't have a RedPanda broker running on this port
-    b.set_bootstrap_servers("localhost:9000");
-    b.set_session_timeout_ms(6000);
-    b.set_rdkafka_log_level(RDKafkaLogLevel::Info);
-    let topic = "i_dont_exist";
-
-    let duration = Duration::from_secs(1);
-    let timeout = Timeout::After(duration);
-
-    let consumer = b.build_consumer();
-}
-
-#[tokio::test]
-#[traced_test]
-pub async fn test_bad_hostname() {
+pub async fn test_consumer_bad_server() {
     let mut b = RedPandaBuilder::new();
     // Assumes you don't have a RedPanda broker running on this port
     b.set_bootstrap_servers("localhost:9000");
     b.set_socket_timeout_ms(3000);
     b.set_socket_connection_setup_timeout_ms(3000);
-    let topic = "i_dont_exist";
 
-    let duration = Duration::from_secs(1);
-    let timeout = Timeout::After(duration);
+    let err = b.build_consumer();
 
-    let consumer = b.build_consumer();
-
-    consumer
-        .subscribe(&[&topic])
-        .expect("Can't subscribe to specified topic");
-
-    let err = consumer.fetch_metadata(Some(topic), timeout);
     assert!(err.is_err());
 
     // This has to unwrap successfully because of the is_err() check above
@@ -71,10 +27,39 @@ pub async fn test_bad_hostname() {
     assert!(err_code == RDKafkaErrorCode::BrokerTransportFailure);
 }
 
+/// Does RedPandaConsumer successfully construct if some of the bootstrap_servers are invalid?
+#[tokio::test]
+#[traced_test]
+pub async fn test_consumer_some_bad_servers() {
+    let mut b = RedPandaBuilder::new();
+    // Assumes you don't have a RedPanda broker running on port 9000
+    // ...and that you DO have one running on port 9010
+    b.set_bootstrap_servers("localhost:9000,localhost:9010");
+    b.set_creation_timeout_ms(3000);
+
+    let consumer = b.build_consumer();
+
+    assert!(consumer.is_ok());
+}
+
+/// Does RedPandaConsumer successfully construct if bootstrap_servers is valid?
+#[tokio::test]
+#[traced_test]
+pub async fn test_consumer_valid_server() {
+    let mut b = RedPandaBuilder::new();
+    // Assumes you have a RedPanda broker running on 9010, 9011, 9012
+    b.set_bootstrap_servers("localhost:9010,localhost:9011,localhost:9012");
+    b.set_creation_timeout_ms(3000);
+
+    let consumer = b.build_consumer();
+
+    assert!(consumer.is_ok());
+}
+
 /// Test invalid topic response on a valid broker
 #[tokio::test]
 #[traced_test]
-pub async fn test_valid_hostname_invalid_topic() {
+pub async fn test_consumer_invalid_topic() {
     let mut b = RedPandaBuilder::new();
     // Assumes you don't have a RedPanda broker running on this port
     b.set_bootstrap_servers("localhost:9010");
@@ -84,31 +69,9 @@ pub async fn test_valid_hostname_invalid_topic() {
     b.set_rdkafka_log_level(RDKafkaLogLevel::Info);
     let topic = "i_dont_exist";
 
-    let duration = Duration::from_secs(1);
-    let timeout = Timeout::After(duration);
+    let consumer = b.build_consumer().unwrap();
 
-    let consumer = b.build_consumer();
-
-    // This should work but doesn't
-    // let subscribe_err = consumer.subscribe(&[&topic]);
-    // assert!(subscribe_err.is_err());
-
-    // This will just keep trying to get a message even though topic doesn't exist...
-    // let msg = consumer.recv().await.unwrap();
-
-    let metadata: RedPandaMetadata = consumer
-        .fetch_metadata(Some(topic), timeout)
-        .expect("Metadata fetch should succeed for valid broker URLs")
-        .into();
-    event!(Level::DEBUG, "{:?}", metadata);
-
-    // This has to unwrap successfully because of the is_err() check above
-}
-
-/// Regardless of whether there's a valid server this will work!
-#[test]
-pub fn test_connection_fails() {
-    let mut b = RedPandaBuilder::new();
-    b.set_bootstrap_servers("localhost:9000");
-    b.build_producer();
+    todo!();
+    // Create function that receives topic names & checks them against the consumer metadata...if
+    // a name isn't in the topic names, return errors
 }
