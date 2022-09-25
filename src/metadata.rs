@@ -7,13 +7,26 @@ use std::convert::From;
 #[derive(Debug)]
 pub struct RedPandaMetadata {
     /// ID of the broker originating this metadata
-    orig_broker_id: i32,
+    pub orig_broker_id: i32,
     /// hostname of the broker originating this metadata
-    orig_broker_name: String,
+    pub orig_broker_name: String,
     /// metadata information for all the brokers in the cluster
-    brokers: Vec<RedPandaBroker>,
+    pub brokers: Vec<RedPandaBroker>,
     /// metadata information for all the topics in the cluster
-    topics: Vec<RedPandaTopic>,
+    pub topics: Vec<RedPandaTopic>,
+}
+
+impl RedPandaMetadata {
+    /// Get a sorted list of the names of all topics in the cluster
+    pub fn topic_names(&self) -> Vec<String> {
+        let mut topic_names = Vec::new();
+        for topic in &self.topics {
+            topic_names.push(topic.name.clone());
+        }
+        topic_names.sort();
+
+        topic_names
+    }
 }
 
 impl From<Metadata> for RedPandaMetadata {
@@ -39,11 +52,11 @@ impl From<Metadata> for RedPandaMetadata {
 #[derive(Debug)]
 pub struct RedPandaBroker {
     /// ID of broker
-    id: i32,
+    pub id: i32,
     /// hostname of broker
-    hostname: String,
+    pub hostname: String,
     /// port of broker
-    port: u16,
+    pub port: u16,
 }
 
 impl From<&MetadataBroker> for RedPandaBroker {
@@ -63,11 +76,11 @@ impl From<&MetadataBroker> for RedPandaBroker {
 #[derive(Debug)]
 pub struct RedPandaTopic {
     /// name of the topic
-    name: String,
+    pub name: String,
     /// partition metadata information for all partitions
-    partitions: Vec<RedPandaPartition>,
+    pub partitions: Vec<RedPandaPartition>,
     /// metadata error for the topic, or `None` if there was no error
-    error: Option<RDKafkaRespErr>,
+    pub error: Option<RDKafkaRespErr>,
 }
 
 impl From<&MetadataTopic> for RedPandaTopic {
@@ -88,15 +101,15 @@ impl From<&MetadataTopic> for RedPandaTopic {
 #[derive(Debug)]
 pub struct RedPandaPartition {
     /// id of the partition
-    id: i32,
+    pub id: i32,
     /// broker id of the leader broker for the partition
-    leader: i32,
+    pub leader: i32,
     /// metadata error for the partition, or `None` if there is no error
-    error: Option<RDKafkaRespErr>,
+    pub error: Option<RDKafkaRespErr>,
     /// broker id of replicas
-    replicas: Vec<i32>,
+    pub replicas: Vec<i32>,
     /// broker IDs of the in-sync replicas
-    in_sync_replicas: Vec<i32>,
+    pub in_sync_replicas: Vec<i32>,
 }
 
 /// Construct RedPandaPartition from rdkafka::metadata::MetadataPartition
