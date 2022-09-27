@@ -189,7 +189,7 @@ pub async fn test_producer_consumer_valid_topic() {
     let key = 1_u32.to_le_bytes().to_vec();
     let payload = 2_u32.to_le_bytes().to_vec();
     let r = producer
-        .send_result_topic_key_partition(topic_name, &key, &payload)
+        .send_result_topic_key_payload(topic_name, &key, &payload)
         .unwrap();
     r.await.unwrap().unwrap();
     // event!(Level::INFO, "Produced message");

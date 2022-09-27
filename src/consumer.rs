@@ -1,5 +1,5 @@
 use rdkafka::{
-    consumer::{Consumer, MessageStream, StreamConsumer},
+    consumer::{MessageStream, StreamConsumer},
     error::KafkaError,
     message::BorrowedMessage,
     util::Timeout,
@@ -7,6 +7,8 @@ use rdkafka::{
 use tracing::{event, instrument, Level};
 
 use crate::metadata::RedPandaMetadata;
+
+pub use rdkafka::consumer::Consumer;
 
 pub struct RedPandaConsumer {
     pub consumer: StreamConsumer,
