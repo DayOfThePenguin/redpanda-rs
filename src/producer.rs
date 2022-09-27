@@ -1,12 +1,14 @@
 use crate::{builder::TracingProducerContext, metadata::RedPandaMetadata};
 use rdkafka::{
     error::KafkaError,
-    producer::{DeliveryFuture, FutureProducer, FutureRecord, Producer},
+    producer::{DeliveryFuture, FutureProducer, Producer},
     util::Timeout,
 };
 use tracing::{event, instrument, Level};
 
 type TracingProducer = FutureProducer<TracingProducerContext>;
+
+pub use rdkafka::producer::FutureRecord;
 
 pub struct RedPandaProducer {
     producer: TracingProducer,

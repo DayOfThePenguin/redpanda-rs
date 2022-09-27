@@ -1,9 +1,9 @@
-mod admin;
-mod builder;
-mod config;
-mod consumer;
-mod metadata;
-mod producer;
+pub mod admin;
+pub mod builder;
+pub mod config;
+pub mod consumer;
+pub mod metadata;
+pub mod producer;
 
 #[cfg(test)]
 mod tests;
