@@ -75,7 +75,7 @@ impl Default for RedPandaBuilder {
     fn default() -> Self {
         let mut builder = Self::new();
         builder.set_auto_offset_reset(AutoOffsetReset::Smallest);
-        // builder.enable_partition_eof();
+        builder.enable_idempotence();
         builder.set_socket_timeout_ms(15000);
         builder.set_session_timeout_ms(15000);
         builder.set_compression_type(CompressionType::Zstd);

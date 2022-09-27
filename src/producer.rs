@@ -11,7 +11,7 @@ type TracingProducer = FutureProducer<TracingProducerContext>;
 pub use rdkafka::producer::FutureRecord;
 
 pub struct RedPandaProducer {
-    producer: TracingProducer,
+    pub producer: TracingProducer,
 }
 
 impl RedPandaProducer {
@@ -34,7 +34,7 @@ impl RedPandaProducer {
         Ok(Self { producer })
     }
 
-    pub fn send_result(
+    pub fn send_result_topic_key_partition(
         &self,
         topic: &str,
         key: &Vec<u8>,
