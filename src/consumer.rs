@@ -1,7 +1,8 @@
 use rdkafka::{
-    consumer::{Consumer, StreamConsumer},
+    consumer::{Consumer, MessageStream, StreamConsumer},
     error::KafkaError,
-    util::Timeout, message::BorrowedMessage,
+    message::BorrowedMessage,
+    util::Timeout,
 };
 use tracing::{event, instrument, Level};
 
@@ -54,8 +55,7 @@ impl RedPandaConsumer {
         for topic in topic_names {
             let valid_name = cluster_topic_names.binary_search(&topic.to_owned().to_owned());
             if valid_name.is_err() {
-                let e =
-                    KafkaError::Subscription(format!("Invalid topic name {}", topic));
+                let e = KafkaError::Subscription(format!("Invalid topic name {}", topic));
                 return Err(e);
             }
         }
@@ -64,7 +64,7 @@ impl RedPandaConsumer {
             Ok(_) => {
                 event!(Level::INFO, "Subscribed to topics {:?}", topic_names);
                 Ok(())
-            },
+            }
             Err(e) => Err(e),
         }
     }
@@ -83,5 +83,10 @@ impl RedPandaConsumer {
     /// Receive a single message
     pub async fn recv(&self) -> Result<BorrowedMessage<'_>, KafkaError> {
         self.consumer.recv().await
+    }
+
+    /// Create a message stream 
+    pub fn stream(&self) -> MessageStream {
+        self.consumer.stream()
     }
 }

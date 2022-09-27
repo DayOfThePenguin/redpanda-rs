@@ -1,4 +1,4 @@
-use rdkafka::admin::{AdminClient, AdminOptions, ResourceSpecifier, NewTopic};
+use rdkafka::admin::{AdminClient, AdminOptions, NewTopic, ResourceSpecifier};
 use rdkafka::client::DefaultClientContext;
 use rdkafka::error::KafkaError;
 use tracing::{event, instrument, Level};
@@ -37,8 +37,10 @@ impl RedPandaAdminClient {
         let opts = AdminOptions::new();
         // Fixed replication = all partitions have the same replication factor
         let replication = rdkafka::admin::TopicReplication::Fixed(replication_factor.into());
-        let mut config = Vec::new();
-        config.push(("compression.type", "zstd"));
+        let config = vec![
+            ("compression.type", "zstd"),
+            ("auto.offset.reset", "beginning"),
+        ];
 
         let topic = NewTopic {
             name,
@@ -59,20 +61,20 @@ impl RedPandaAdminClient {
                             num_partitions,
                             replication_factor
                         );
-                        return Ok(());
-                    },
+                        Ok(())
+                    }
                     Err(e) => {
                         event!(
                             Level::ERROR,
                             "Failed to create topic {}, {:?}",
                             e.0, // topic name
-                            e.1 // RDKafkaErrorCode
+                            e.1  // RDKafkaErrorCode
                         );
-                        return Err(KafkaError::AdminOp(e.1))
-                    },
+                        Err(KafkaError::AdminOp(e.1))
+                    }
                 }
             }
-            Err(e) => return Err(e),
+            Err(e) => Err(e)
         }
     }
 
@@ -86,20 +88,20 @@ impl RedPandaAdminClient {
                 match &results_vec[0] {
                     Ok(deleted_name) => {
                         event!(Level::INFO, "Deleted topic {}", deleted_name);
-                        return Ok(());
-                    },
+                        Ok(())
+                    }
                     Err(e) => {
                         event!(
                             Level::ERROR,
                             "Failed to delete topic {}, {:?}",
                             e.0, // topic name
-                            e.1 // RDKafkaErrorCode
+                            e.1  // RDKafkaErrorCode
                         );
-                        return Err(KafkaError::AdminOp(e.1))
-                    },
+                        Err(KafkaError::AdminOp(e.1))
+                    }
                 }
             }
-            Err(e) => return Err(e),
+            Err(e) => Err(e),
         }
     }
 }

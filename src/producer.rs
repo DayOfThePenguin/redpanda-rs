@@ -1,7 +1,7 @@
 use crate::{builder::TracingProducerContext, metadata::RedPandaMetadata};
 use rdkafka::{
     error::KafkaError,
-    producer::{FutureProducer, FutureRecord, Producer, DeliveryFuture},
+    producer::{DeliveryFuture, FutureProducer, FutureRecord, Producer},
     util::Timeout,
 };
 use tracing::{event, instrument, Level};
@@ -32,7 +32,12 @@ impl RedPandaProducer {
         Ok(Self { producer })
     }
 
-    pub fn send_result(&self, topic: &str, key: &Vec<u8>, payload: &Vec<u8>) -> Result<DeliveryFuture, KafkaError> {
+    pub fn send_result(
+        &self,
+        topic: &str,
+        key: &Vec<u8>,
+        payload: &Vec<u8>,
+    ) -> Result<DeliveryFuture, KafkaError> {
         let record = FutureRecord {
             topic,
             partition: Option::None,
@@ -42,13 +47,11 @@ impl RedPandaProducer {
             headers: Option::None,
         };
         match self.producer.send_result(record) {
-            Ok(d) => {
-                return Ok(d)
-            }
+            Ok(d) => Ok(d),
             Err(e) => {
                 event!(Level::ERROR, "Failed to queue message {:?} {}", e.1, e.0);
-                return Err(e.0)
+                Err(e.0)
             }
-        };
+        }
     }
 }

@@ -1,22 +1,28 @@
-use std::time::Duration;
-
-use rdkafka::{config::RDKafkaLogLevel, util::Timeout};
-use rdkafka::types::RDKafkaErrorCode;
+use rand::distributions::{Alphanumeric, DistString};
+use rdkafka::config::RDKafkaLogLevel;
 use rdkafka::consumer::Consumer;
 use rdkafka::message::Message;
-use rdkafka::topic_partition_list::Offset;
+use rdkafka::types::RDKafkaErrorCode;
 use tracing::{event, Level};
 use tracing_test::traced_test;
-use futures::stream::StreamExt;
 
-use crate::metadata::RedPandaMetadata;
-use crate::{builder::RedPandaBuilder, config::CompressionType};
+use crate::builder::RedPandaBuilder;
+
+/// Makes a new RedPandaBuilder with default parameters and a random group.id to avoid
+/// group ID collisions between test runs
+pub fn gen_test_builder() -> RedPandaBuilder {
+    let mut b = RedPandaBuilder::default();
+    let group_id = Alphanumeric.sample_string(&mut rand::thread_rng(), 16);
+    b.set_group_id(&group_id);
+
+    b
+}
 
 /// Does RedPandaConsumer fail to construct with the proper error code if the bootstrap_server doesn't exist?
 #[tokio::test]
 #[traced_test]
 pub async fn test_consumer_invalid_server() {
-    let mut b = RedPandaBuilder::new();
+    let mut b = gen_test_builder();
     // Assumes you don't have a RedPanda broker running on this port
     b.set_bootstrap_servers("localhost:9000");
     b.set_socket_timeout_ms(3000);
@@ -36,7 +42,7 @@ pub async fn test_consumer_invalid_server() {
 #[tokio::test]
 #[traced_test]
 pub async fn test_consumer_some_bad_servers() {
-    let mut b = RedPandaBuilder::new();
+    let mut b = gen_test_builder();
     // Assumes you don't have a RedPanda broker running on port 9000
     // ...and that you DO have one running on port 9010
     b.set_bootstrap_servers("localhost:9000,localhost:9010");
@@ -51,7 +57,7 @@ pub async fn test_consumer_some_bad_servers() {
 #[tokio::test]
 #[traced_test]
 pub async fn test_consumer_valid_server() {
-    let mut b = RedPandaBuilder::new();
+    let mut b = gen_test_builder();
     // Assumes you have a RedPanda broker running on 9010, 9011, 9012
     b.set_bootstrap_servers("localhost:9010,localhost:9011,localhost:9012");
     b.set_creation_timeout_ms(3000);
@@ -65,7 +71,7 @@ pub async fn test_consumer_valid_server() {
 #[tokio::test]
 #[traced_test]
 pub async fn test_consumer_invalid_topic() {
-    let mut b = RedPandaBuilder::new();
+    let mut b = gen_test_builder();
     // Assumes you have a RedPanda broker running on this port
     b.set_bootstrap_servers("localhost:9010");
     b.set_creation_timeout_ms(3000);
@@ -82,7 +88,7 @@ pub async fn test_consumer_invalid_topic() {
 #[tokio::test]
 #[traced_test]
 pub async fn test_metadata_topic_names() {
-    let mut b = RedPandaBuilder::new();
+    let mut b = gen_test_builder();
     // Assumes you have a RedPanda broker running on this port
     b.set_bootstrap_servers("localhost:9010");
     b.set_creation_timeout_ms(3000);
@@ -104,7 +110,7 @@ pub async fn test_metadata_topic_names() {
 #[tokio::test]
 #[traced_test]
 pub async fn test_consumer_subscription() {
-    let mut b = RedPandaBuilder::new();
+    let mut b = gen_test_builder();
     // Assumes you have a RedPanda broker running on this port
     b.set_bootstrap_servers("localhost:9010");
     b.set_creation_timeout_ms(3000);
@@ -124,41 +130,14 @@ pub async fn test_consumer_subscription() {
     assert_eq!(subscriptions, vec!["__consumer_offsets"]);
 }
 
-/// Test RedPandaConsumer consumption recv()
-#[tokio::test]
-#[traced_test]
-pub async fn test_consumer_recv() {
-    let mut b = RedPandaBuilder::new();
-    // Assumes you have a RedPanda broker running on this port
-    b.set_bootstrap_servers("localhost:9010");
-    b.set_creation_timeout_ms(3000);
-    b.set_rdkafka_log_level(RDKafkaLogLevel::Info);
-    let consumer = b.build_consumer().unwrap();
-
-    let topic = "test_producer_topic";
-    // Subscribe to _schemas & verify subscription
-    consumer.subscribe(&[topic]).unwrap();
-    let subscriptions = consumer.get_subscription_topic_names();
-    assert_eq!(subscriptions, vec![topic]);
-
-    let meta: RedPandaMetadata = consumer.fetch_metadata().unwrap().into();
-    event!(Level::INFO, "{:?}", meta);
-
-    event!(Level::INFO, "{:?}", consumer.consumer.subscription().unwrap());
-    consumer.consumer.seek(topic, 0, Offset::Beginning, Timeout::After(Duration::from_secs(1))).unwrap();
-    event!(Level::INFO, "{:?}", consumer.consumer.subscription().unwrap());
-    // consumer.consumer.stream().next().await;
-}
-
 /// Does RedPandaProducer fail to construct with the proper error code if the bootstrap_server doesn't exist?
 #[tokio::test]
 #[traced_test]
 pub async fn test_producer_invalid_server() {
-    let mut b = RedPandaBuilder::new();
+    let mut b = gen_test_builder();
     // Assumes you don't have a RedPanda broker running on this port
     b.set_bootstrap_servers("localhost:9000");
-    b.set_creation_timeout_ms(3000);
-    b.set_rdkafka_log_level(RDKafkaLogLevel::Info);
+
     let err = b.build_producer();
 
     assert!(err.is_err());
@@ -173,12 +152,10 @@ pub async fn test_producer_invalid_server() {
 #[tokio::test]
 #[traced_test]
 pub async fn test_producer_some_bad_servers() {
-    let mut b = RedPandaBuilder::new();
+    let mut b = gen_test_builder();
     // Assumes you don't have a RedPanda broker running on port 9000
     // ...and that you DO have one running on port 9010
     b.set_bootstrap_servers("localhost:9000,localhost:9010");
-    b.set_creation_timeout_ms(3000);
-    b.set_rdkafka_log_level(RDKafkaLogLevel::Info);
     let consumer = b.build_consumer();
 
     assert!(consumer.is_ok());
@@ -188,11 +165,9 @@ pub async fn test_producer_some_bad_servers() {
 #[tokio::test]
 #[traced_test]
 pub async fn test_producer_valid_server() {
-    let mut b = RedPandaBuilder::new();
+    let mut b = gen_test_builder();
     // Assumes you have a RedPanda broker running on ports 9010, 9011, 9012
     b.set_bootstrap_servers("localhost:9010,localhost:9011,localhost:9012");
-    b.set_creation_timeout_ms(3000);
-    b.set_rdkafka_log_level(RDKafkaLogLevel::Info);
     let producer = b.build_producer();
 
     assert!(producer.is_ok());
@@ -202,14 +177,9 @@ pub async fn test_producer_valid_server() {
 #[tokio::test]
 #[traced_test]
 pub async fn test_producer_consumer_valid_topic() {
-    let mut b = RedPandaBuilder::new();
+    let mut b = gen_test_builder();
     // Assumes you have a RedPanda broker running on ports 9010, 9011, 9012
     b.set_bootstrap_servers("localhost:9010,localhost:9011,localhost:9012");
-    b.set_creation_timeout_ms(3000);
-    b.set_socket_timeout_ms(3000);
-    b.set_session_timeout_ms(15000);
-    b.set_compression_type(CompressionType::Zstd);
-    b.set_rdkafka_log_level(RDKafkaLogLevel::Info);
     let producer = b.build_producer().unwrap();
     let consumer = b.build_consumer().unwrap();
     let admin_client = b.build_admin_client().await.unwrap();
@@ -218,27 +188,29 @@ pub async fn test_producer_consumer_valid_topic() {
 
     let key = 1_u32.to_le_bytes().to_vec();
     let payload = 2_u32.to_le_bytes().to_vec();
-    producer.send_result(topic_name, &key, &payload).unwrap();
+    let r = producer.send_result(topic_name, &key, &payload).unwrap();
+    r.await.unwrap().unwrap();
     // event!(Level::INFO, "Produced message");
-
+    event!(Level::INFO, "{:?}", consumer.consumer.position().unwrap());
     consumer.subscribe(&[topic_name]).unwrap();
+    event!(Level::INFO, "{:?}", consumer.consumer.position().unwrap());
     let msg = consumer.recv().await.unwrap();
     event!(Level::INFO, "Got message");
     assert_eq!(msg.key().unwrap(), key);
     assert_eq!(msg.payload().unwrap(), payload);
+    event!(Level::INFO, "{:?}", consumer.consumer.position().unwrap());
 
     admin_client.delete_topic(topic_name).await.unwrap();
+    event!(Level::INFO, "Deleted test topic");
 }
 
 /// Does RedPandaAdminClient fail to construct with the proper error code if the bootstrap_server doesn't exist?
 #[tokio::test]
 #[traced_test]
 pub async fn test_admin_invalid_server() {
-    let mut b = RedPandaBuilder::new();
+    let mut b = gen_test_builder();
     // Assumes you don't have a RedPanda broker running on this port
     b.set_bootstrap_servers("localhost:9000");
-    b.set_socket_timeout_ms(3000);
-    b.set_rdkafka_log_level(RDKafkaLogLevel::Info);
     let err = b.build_admin_client().await;
 
     assert!(err.is_err());
@@ -248,12 +220,10 @@ pub async fn test_admin_invalid_server() {
 #[tokio::test]
 #[traced_test]
 pub async fn test_admin_some_bad_servers() {
-    let mut b = RedPandaBuilder::new();
+    let mut b = gen_test_builder();
     // Assumes you don't have a RedPanda broker running on port 9000
     // ...and that you DO have one running on port 9010
     b.set_bootstrap_servers("localhost:9000,localhost:9010");
-    b.set_socket_timeout_ms(3000);
-    b.set_rdkafka_log_level(RDKafkaLogLevel::Info);
     let admin_client = b.build_admin_client().await;
 
     assert!(admin_client.is_ok());
@@ -263,11 +233,9 @@ pub async fn test_admin_some_bad_servers() {
 #[tokio::test]
 #[traced_test]
 pub async fn test_admin_valid_server() {
-    let mut b = RedPandaBuilder::new();
+    let mut b = gen_test_builder();
     // Assumes you have a RedPanda broker running on ports 9010, 9011, 9012
     b.set_bootstrap_servers("localhost:9010,localhost:9011,localhost:9012");
-    b.set_socket_timeout_ms(3000);
-    b.set_rdkafka_log_level(RDKafkaLogLevel::Info);
     let admin_client = b.build_admin_client().await;
 
     assert!(admin_client.is_ok());
@@ -277,11 +245,9 @@ pub async fn test_admin_valid_server() {
 #[tokio::test]
 #[traced_test]
 pub async fn test_admin_create_delete_topic() {
-    let mut b = RedPandaBuilder::new();
+    let mut b = gen_test_builder();
     // Assumes you have a RedPanda broker running on ports 9010, 9011, 9012
     b.set_bootstrap_servers("localhost:9010,localhost:9011,localhost:9012");
-    b.set_socket_timeout_ms(3000);
-    b.set_rdkafka_log_level(RDKafkaLogLevel::Info);
     let admin_client = b.build_admin_client().await.unwrap();
 
     let topic_name = "test_test_test";

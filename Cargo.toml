@@ -1,12 +1,11 @@
 [package]
 name = "redpanda"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Colin Dablain"]
 description = "A crate for interacting with RedPanda Message Brokers"
 readme = "README.md"
 repository = "https://github.com/DayOfThePenguin/redpanda-rs"
 license = "Apache-2.0"
-license-file = "LICENSE.txt"
 keywords = ["redpanda", "kafka", "redpanda-rs"]
 categories = ["api-bindings"]
 exclude = ["Cargo.lock"]
@@ -20,8 +19,11 @@ tokio = { version = "1", features = ["full"] }
 futures = "0.3"
 # pin to version of rdkafka that's passed CI, uses most recent version of librdkafka, but hasn't been merged into the
 # main branch of rdkafka
-rdkafka = { git = "https://github.com/gyfis/rust-rdkafka", branch = "g/librdkafka-1.9.0", features = ["zstd", "tracing"]}
+rdkafka = { git = "https://github.com/gyfis/rust-rdkafka", branch = "g/librdkafka-1.9.0", features = ["zstd", "tracing", "cmake-build", "zstd-pkg-config"]}
 # rdkafka = "0.28"
 tracing = "0.1"
 tracing-subscriber = "0.3"
+
+[dev-dependencies]
 tracing-test = "0.1"
+rand = "0.8"

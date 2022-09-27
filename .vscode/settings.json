@@ -1,6 +1,9 @@
 {
     "cSpell.words": [
+        "idempotence",
         "librdkafka",
-        "rdkafka"
+        "rdkafka",
+        "redpanda",
+        "SASL"
     ]
 }
