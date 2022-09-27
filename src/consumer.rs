@@ -85,7 +85,7 @@ impl RedPandaConsumer {
         self.consumer.recv().await
     }
 
-    /// Create a message stream 
+    /// Create a message stream
     pub fn stream(&self) -> MessageStream {
         self.consumer.stream()
     }

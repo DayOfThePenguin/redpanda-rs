@@ -27,3 +27,11 @@ Change segment size:
 Archive all the topics in your cluster to local S3 storage using MinIO!
 
 Run `./configure_cluster.sh` in the `config` directory.
+
+## References
+
+librdkafka docs:
+
+- [librdkafka wiki](https://github.com/edenhill/librdkafka/wiki)
+- [librdkafka discussion](https://github.com/edenhill/librdkafka/discussions)
+- [Manually set consumer start offset](https://github.com/edenhill/librdkafka/wiki/Manually-setting-the-consumer-start-offset)

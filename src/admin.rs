@@ -74,7 +74,7 @@ impl RedPandaAdminClient {
                     }
                 }
             }
-            Err(e) => Err(e)
+            Err(e) => Err(e),
         }
     }
 
