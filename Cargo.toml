@@ -1,6 +1,6 @@
 [package]
 name = "redpanda"
-version = "0.2.5"
+version = "0.2.6"
 authors = ["Colin Dablain"]
 description = "A crate for interacting with RedPanda Message Brokers"
 readme = "README.md"
@@ -24,6 +24,7 @@ rdkafka = {git = "https://github.com/gyfis/rust-rdkafka", branch = "g/librdkafka
 tracing = "0.1"
 tracing-subscriber = "0.3"
 chrono = "0.4"
+thiserror = "1"
 
 [dev-dependencies]
 tracing-test = "0.1"

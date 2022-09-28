@@ -1,3 +1,4 @@
+use chrono::Utc;
 use rand::distributions::{Alphanumeric, DistString};
 use rdkafka::config::RDKafkaLogLevel;
 use rdkafka::consumer::Consumer;
@@ -267,3 +268,17 @@ pub async fn test_admin_create_delete_topic() {
 }
 
 // TODO: Test failures on invalid topic creation parameters (invalid name (topic already exists), replication factor > num_brokers, replication factor 0, partitions 0)
+
+#[test]
+pub fn test_key_ser_de() {
+    let timestamp = Utc::now();
+    let ser = crate::serialize_key(timestamp);
+    let de = crate::deserialize_key(ser).unwrap();
+
+    assert_eq!(de, timestamp);
+
+    // verify invalid length bytes don't deserialize and throw an error
+    let invalid_ser: Vec<u8> = vec![1, 2, 3];
+    let key_err = crate::deserialize_key(invalid_ser);
+    assert!(key_err.is_err());
+}
