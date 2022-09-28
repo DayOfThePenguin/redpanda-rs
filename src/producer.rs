@@ -11,6 +11,10 @@ type TracingProducer = FutureProducer<TracingProducerContext>;
 
 pub use rdkafka::producer::FutureRecord;
 
+/// Derive Clone is fine because the underlying rdkafka::producer::FutureProducer is meant
+/// to be cloned cheaply.
+/// ref: https://docs.rs/rdkafka/0.28.0/rdkafka/producer/struct.FutureProducer.html
+#[derive(Clone)]
 pub struct RedPandaProducer {
     pub producer: TracingProducer,
 }
