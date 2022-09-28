@@ -1,6 +1,6 @@
 [package]
 name = "redpanda"
-version = "0.2.6"
+version = "0.2.7"
 authors = ["Colin Dablain"]
 description = "A crate for interacting with RedPanda Message Brokers"
 readme = "README.md"

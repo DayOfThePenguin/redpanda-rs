@@ -58,22 +58,28 @@ impl RedPandaProducer {
         }
     }
 
-    pub fn send_result_topic_partition_payload_key_headers(&self, topic: &str, partition: Option<i32>, payload: &Vec<u8>, key: &Vec<u8>, headers: OwnedHeaders) ->
-        Result<DeliveryFuture, KafkaError> {
-            let record = FutureRecord {
-                topic,
-                partition: partition,
-                payload: Some(payload),
-                key: Some(key),
-                timestamp: Option::None,
-                headers: Some(headers),
-            };
-            match self.producer.send_result(record) {
-                Ok(d) => Ok(d),
-                Err(e) => {
-                    event!(Level::ERROR, "Failed to queue message {:?} {}", e.1, e.0);
-                    Err(e.0)
-                }
+    pub fn send_result_topic_partition_payload_key_headers(
+        &self,
+        topic: &str,
+        partition: Option<i32>,
+        payload: &Vec<u8>,
+        key: &Vec<u8>,
+        headers: OwnedHeaders,
+    ) -> Result<DeliveryFuture, KafkaError> {
+        let record = FutureRecord {
+            topic,
+            partition,
+            payload: Some(payload),
+            key: Some(key),
+            timestamp: Option::None,
+            headers: Some(headers),
+        };
+        match self.producer.send_result(record) {
+            Ok(d) => Ok(d),
+            Err(e) => {
+                event!(Level::ERROR, "Failed to queue message {:?} {}", e.1, e.0);
+                Err(e.0)
             }
+        }
     }
 }

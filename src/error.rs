@@ -1,5 +1,7 @@
-use thiserror::Error;
+use std::array::TryFromSliceError;
+
 pub use rdkafka::error::*;
+use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum RedPandaError {
@@ -11,10 +13,8 @@ pub enum RedPandaError {
 
 #[derive(Error, Debug)]
 pub enum RecordError {
-    #[error("key {value:?} doesn't deserialize to a DateTime<Utc>")]
-    KeyDeserializeError{
-        value: Vec<u8>,
-    },
+    #[error("key doesn't deserialize to a DateTime<Utc>")]
+    KeyDeserializeError(#[from] TryFromSliceError),
     #[error("unknown Record error")]
     Unknown,
 }
