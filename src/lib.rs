@@ -20,8 +20,12 @@ pub use producer::RedPandaProducer;
 pub use rdkafka::groups;
 pub use rdkafka::message;
 pub use rdkafka::statistics;
-pub use rdkafka::types;
 use tracing::instrument;
+
+mod types {
+    pub use rdkafka::types::*;
+    pub use rdkafka::util::Timeout;
+}
 
 /// Serialize a UTC DateTime with nanosecond precision to a byte Vec
 pub fn serialize_key(key: DateTime<Utc>) -> Vec<u8> {
