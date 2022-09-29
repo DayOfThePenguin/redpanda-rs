@@ -2,7 +2,7 @@ use crate::{builder::TracingProducerContext, metadata::RedPandaMetadata};
 use rdkafka::{
     error::KafkaError,
     message::OwnedHeaders,
-    producer::{DeliveryFuture, FutureProducer, Producer},
+    producer::{DeliveryFuture, FutureProducer},
     util::Timeout,
 };
 use tracing::{event, instrument, Level};
@@ -10,6 +10,7 @@ use tracing::{event, instrument, Level};
 type TracingProducer = FutureProducer<TracingProducerContext>;
 
 pub use rdkafka::producer::FutureRecord;
+pub use rdkafka::producer::Producer;
 
 /// Derive Clone is fine because the underlying rdkafka::producer::FutureProducer is meant
 /// to be cloned cheaply.
