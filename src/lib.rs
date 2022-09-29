@@ -22,7 +22,7 @@ pub use rdkafka::message;
 pub use rdkafka::statistics;
 use tracing::instrument;
 
-mod types {
+pub mod types {
     pub use rdkafka::types::*;
     pub use rdkafka::util::Timeout;
 }
