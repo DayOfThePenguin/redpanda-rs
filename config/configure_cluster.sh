@@ -1,4 +1,4 @@
-# declarative configuration to set up the s3 archiving of data from RedPanda to MinIO
+# declarative configuration to set up the s3 archiving of data from Redpanda to MinIO
 
 # MinIO Username
 docker exec panda-0 rpk cluster config set cloud_storage_access_key redpanda
@@ -30,6 +30,6 @@ docker exec panda-0 rpk cluster config set cloud_storage_enable_remote_read true
 # Turn on archiving to cloud storage
 docker exec panda-0 rpk cluster config set cloud_storage_enabled true
 
-# Print the status of the RedPanda cluster (a restart of your cluster will probably be
+# Print the status of the Redpanda cluster (a restart of your cluster will probably be
 # required after you run this for the first time)
 docker exec panda-0 rpk cluster config status

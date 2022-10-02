@@ -5,19 +5,19 @@ use tracing::{event, instrument, Level};
 
 type DefaultAdminClient = AdminClient<DefaultClientContext>;
 
-pub struct RedPandaAdminClient {
+pub struct RedpandaAdminClient {
     admin_client: DefaultAdminClient,
 }
 
-impl RedPandaAdminClient {
-    /// Construct a new RedPandaAdminClient
+impl RedpandaAdminClient {
+    /// Construct a new RedpandaAdminClient
     #[instrument(skip(admin_client))]
     pub async fn new(admin_client: DefaultAdminClient) -> Result<Self, KafkaError> {
         let opts = AdminOptions::new();
         let configs = ResourceSpecifier::Topic("_schemas");
         match admin_client.describe_configs([&configs], &opts).await {
             Ok(_) => {
-                event!(Level::INFO, "Connected admin client to RedPanda cluster",);
+                event!(Level::INFO, "Connected admin client to Redpanda cluster",);
             }
             Err(e) => return Err(e),
         };

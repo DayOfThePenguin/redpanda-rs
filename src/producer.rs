@@ -1,4 +1,4 @@
-use crate::{builder::TracingProducerContext, metadata::RedPandaMetadata};
+use crate::{builder::TracingProducerContext, metadata::RedpandaMetadata};
 use rdkafka::{
     error::KafkaError,
     message::OwnedHeaders,
@@ -16,21 +16,21 @@ pub use rdkafka::producer::Producer;
 /// to be cloned cheaply.
 /// ref: https://docs.rs/rdkafka/0.28.0/rdkafka/producer/struct.FutureProducer.html
 #[derive(Clone)]
-pub struct RedPandaProducer {
+pub struct RedpandaProducer {
     pub producer: TracingProducer,
 }
 
-impl RedPandaProducer {
-    /// Create a new RedPandaProducer
+impl RedpandaProducer {
+    /// Create a new RedpandaProducer
     #[instrument(skip(producer))]
     pub fn new(producer: TracingProducer, request_timeout: Timeout) -> Result<Self, KafkaError> {
         let client = producer.client();
         match client.fetch_metadata(Option::None, request_timeout) {
             Ok(m) => {
-                let m: RedPandaMetadata = m.into();
+                let m: RedpandaMetadata = m.into();
                 event!(
                     Level::INFO,
-                    "Connected consumer to RedPanda cluster {:?}",
+                    "Connected consumer to Redpanda cluster {:?}",
                     m
                 );
                 m

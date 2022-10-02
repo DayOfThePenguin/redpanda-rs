@@ -6,7 +6,7 @@ services:
     container_name: panda-0
     ports:
       - '9010:9010'
-      - '8081:8081' # schema registry port that RedPanda Console connects to...look in config/console-config.yaml
+      - '8081:8081' # schema registry port that Redpanda Console connects to...look in config/console-config.yaml
     command:
       - redpanda
       - start

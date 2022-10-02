@@ -9,14 +9,14 @@ pub mod producer;
 #[cfg(test)]
 mod tests;
 
-pub use admin::RedPandaAdminClient;
-pub use builder::RedPandaBuilder;
+pub use admin::RedpandaAdminClient;
+pub use builder::RedpandaBuilder;
 use chrono::DateTime;
 use chrono::TimeZone;
 use chrono::Utc;
-pub use consumer::RedPandaConsumer;
+pub use consumer::RedpandaConsumer;
 use error::RecordError;
-pub use producer::RedPandaProducer;
+pub use producer::RedpandaProducer;
 pub use rdkafka::groups;
 pub use rdkafka::message;
 pub use rdkafka::statistics;

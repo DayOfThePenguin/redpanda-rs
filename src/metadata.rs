@@ -5,18 +5,18 @@ use rdkafka::{
 use std::convert::From;
 
 #[derive(Debug)]
-pub struct RedPandaMetadata {
+pub struct RedpandaMetadata {
     /// ID of the broker originating this metadata
     pub orig_broker_id: i32,
     /// hostname of the broker originating this metadata
     pub orig_broker_name: String,
     /// metadata information for all the brokers in the cluster
-    pub brokers: Vec<RedPandaBroker>,
+    pub brokers: Vec<RedpandaBroker>,
     /// metadata information for all the topics in the cluster
-    pub topics: Vec<RedPandaTopic>,
+    pub topics: Vec<RedpandaTopic>,
 }
 
-impl RedPandaMetadata {
+impl RedpandaMetadata {
     /// Get a sorted list of the names of all topics in the cluster
     pub fn topic_names(&self) -> Vec<String> {
         let mut topic_names = Vec::new();
@@ -29,14 +29,14 @@ impl RedPandaMetadata {
     }
 }
 
-impl From<Metadata> for RedPandaMetadata {
+impl From<Metadata> for RedpandaMetadata {
     fn from(m: Metadata) -> Self {
-        let mut brokers: Vec<RedPandaBroker> = Vec::new();
+        let mut brokers: Vec<RedpandaBroker> = Vec::new();
         for b in m.brokers() {
             brokers.push(b.into());
         }
 
-        let mut topics: Vec<RedPandaTopic> = Vec::new();
+        let mut topics: Vec<RedpandaTopic> = Vec::new();
         for t in m.topics() {
             topics.push(t.into());
         }
@@ -50,7 +50,7 @@ impl From<Metadata> for RedPandaMetadata {
 }
 
 #[derive(Debug)]
-pub struct RedPandaBroker {
+pub struct RedpandaBroker {
     /// ID of broker
     pub id: i32,
     /// hostname of broker
@@ -59,7 +59,7 @@ pub struct RedPandaBroker {
     pub port: u16,
 }
 
-impl From<&MetadataBroker> for RedPandaBroker {
+impl From<&MetadataBroker> for RedpandaBroker {
     fn from(metadata_broker: &MetadataBroker) -> Self {
         let port = metadata_broker
             .port()
@@ -74,18 +74,18 @@ impl From<&MetadataBroker> for RedPandaBroker {
 }
 
 #[derive(Debug)]
-pub struct RedPandaTopic {
+pub struct RedpandaTopic {
     /// name of the topic
     pub name: String,
     /// partition metadata information for all partitions
-    pub partitions: Vec<RedPandaPartition>,
+    pub partitions: Vec<RedpandaPartition>,
     /// metadata error for the topic, or `None` if there was no error
     pub error: Option<RDKafkaRespErr>,
 }
 
-impl From<&MetadataTopic> for RedPandaTopic {
+impl From<&MetadataTopic> for RedpandaTopic {
     fn from(metadata_topic: &MetadataTopic) -> Self {
-        let mut partitions: Vec<RedPandaPartition> = Vec::new();
+        let mut partitions: Vec<RedpandaPartition> = Vec::new();
         for p in metadata_topic.partitions() {
             partitions.push(p.into());
         }
@@ -99,7 +99,7 @@ impl From<&MetadataTopic> for RedPandaTopic {
 }
 
 #[derive(Debug)]
-pub struct RedPandaPartition {
+pub struct RedpandaPartition {
     /// id of the partition
     pub id: i32,
     /// broker id of the leader broker for the partition
@@ -112,8 +112,8 @@ pub struct RedPandaPartition {
     pub in_sync_replicas: Vec<i32>,
 }
 
-/// Construct RedPandaPartition from rdkafka::metadata::MetadataPartition
-impl From<&MetadataPartition> for RedPandaPartition {
+/// Construct RedpandaPartition from rdkafka::metadata::MetadataPartition
+impl From<&MetadataPartition> for RedpandaPartition {
     fn from(metadata_partition: &MetadataPartition) -> Self {
         Self {
             id: metadata_partition.id(),

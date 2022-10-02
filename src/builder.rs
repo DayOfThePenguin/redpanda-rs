@@ -9,13 +9,13 @@ use tracing::{event, instrument, Level};
 use rdkafka::config::{ClientConfig, RDKafkaLogLevel};
 use rdkafka::producer::ProducerContext;
 
-use crate::admin::RedPandaAdminClient;
+use crate::admin::RedpandaAdminClient;
 use crate::config::CompressionType;
-use crate::consumer::RedPandaConsumer;
-use crate::RedPandaProducer;
+use crate::consumer::RedpandaConsumer;
+use crate::RedpandaProducer;
 
 #[derive(Debug)]
-pub struct RedPandaBuilder {
+pub struct RedpandaBuilder {
     client_config: ClientConfig,
     creation_timeout: Timeout,
 }
@@ -67,7 +67,7 @@ impl Display for AutoOffsetReset {
     }
 }
 
-impl Default for RedPandaBuilder {
+impl Default for RedpandaBuilder {
     /// Reduce the number of config methods that need to be chained to achieve a sensible
     /// default configuration
     ///
@@ -86,12 +86,12 @@ impl Default for RedPandaBuilder {
     }
 }
 
-impl RedPandaBuilder {
+impl RedpandaBuilder {
     pub fn new() -> Self {
         let mut client_config = ClientConfig::new();
         client_config.set("client.id", "redpanda-rs");
         client_config.set("group.id", "default-group");
-        // From RedPanda console inferred Kafka version
+        // From Redpanda console inferred Kafka version
         client_config.set("broker.version.fallback", "0.10.2.0");
         let creation_timeout = Timeout::Never;
         Self {
@@ -100,36 +100,36 @@ impl RedPandaBuilder {
         }
     }
 
-    /// Built a RedPandaProducer from the builder's client_config
+    /// Built a RedpandaProducer from the builder's client_config
     #[instrument]
-    pub fn build_producer(&self) -> Result<RedPandaProducer, KafkaError> {
+    pub fn build_producer(&self) -> Result<RedpandaProducer, KafkaError> {
         let producer_context = TracingProducerContext {};
         let producer = self
             .client_config
             .create_with_context(producer_context)
             .expect("Producer creation failed");
 
-        RedPandaProducer::new(producer, self.creation_timeout)
+        RedpandaProducer::new(producer, self.creation_timeout)
     }
 
-    /// Built a RedPandaConsumer from the builder's client_config
+    /// Built a RedpandaConsumer from the builder's client_config
     #[instrument]
-    pub fn build_consumer(&self) -> Result<RedPandaConsumer, KafkaError> {
+    pub fn build_consumer(&self) -> Result<RedpandaConsumer, KafkaError> {
         let consumer: StreamConsumer = self
             .client_config
             .create()
             .expect("Consumer creation failed");
-        RedPandaConsumer::new(consumer, self.creation_timeout)
+        RedpandaConsumer::new(consumer, self.creation_timeout)
     }
 
-    /// Built a RedPandaAdminClient from the builder's client_config
+    /// Built a RedpandaAdminClient from the builder's client_config
     #[instrument]
-    pub async fn build_admin_client(&self) -> Result<RedPandaAdminClient, KafkaError> {
+    pub async fn build_admin_client(&self) -> Result<RedpandaAdminClient, KafkaError> {
         let admin_client = self
             .client_config
             .create()
             .expect("AdminClient creation failed");
-        RedPandaAdminClient::new(admin_client).await
+        RedpandaAdminClient::new(admin_client).await
     }
 
     /////////////////////////////////////////////////////////////////////////////
@@ -140,7 +140,7 @@ impl RedPandaBuilder {
     /////////////////////////////////////////////////////////////////////////////
 
     /// Set an arbitrary configuration parameter not explicitly defined below
-    pub fn set(&mut self, key: &str, value: &str) -> &mut RedPandaBuilder {
+    pub fn set(&mut self, key: &str, value: &str) -> &mut RedpandaBuilder {
         self.client_config.set(key, value);
 
         self
@@ -149,7 +149,7 @@ impl RedPandaBuilder {
     /// Set the Broker URLs to connect to
     ///
     /// servers: `host:port,host:port`
-    pub fn set_bootstrap_servers(&mut self, servers: &str) -> &mut RedPandaBuilder {
+    pub fn set_bootstrap_servers(&mut self, servers: &str) -> &mut RedpandaBuilder {
         self.client_config.set("bootstrap.servers", servers);
 
         self
@@ -159,7 +159,7 @@ impl RedPandaBuilder {
     /// in the original produce order.
     ///
     /// Default: False
-    pub fn enable_idempotence(&mut self) -> &mut RedPandaBuilder {
+    pub fn enable_idempotence(&mut self) -> &mut RedpandaBuilder {
         self.client_config.set("enable.idempotence", "true");
 
         self
@@ -174,7 +174,7 @@ impl RedPandaBuilder {
     /// problem is that you're stuck at the end of the partition.
     ///
     /// Default: False
-    pub fn enable_partition_eof(&mut self) -> &mut RedPandaBuilder {
+    pub fn enable_partition_eof(&mut self) -> &mut RedpandaBuilder {
         self.client_config.set("enable.partition.eof", "true");
 
         self
@@ -186,7 +186,7 @@ impl RedPandaBuilder {
     pub fn set_compression_type(
         &mut self,
         compression_type: CompressionType,
-    ) -> &mut RedPandaBuilder {
+    ) -> &mut RedpandaBuilder {
         self.client_config
             .set("compression.type", &compression_type.to_string());
 
@@ -200,7 +200,7 @@ impl RedPandaBuilder {
     /// messages and checking 'message->err'.
     ///
     /// Default: largest
-    pub fn set_auto_offset_reset(&mut self, offset: AutoOffsetReset) -> &mut RedPandaBuilder {
+    pub fn set_auto_offset_reset(&mut self, offset: AutoOffsetReset) -> &mut RedpandaBuilder {
         self.client_config
             .set("auto.offset.reset", offset.to_string());
 
@@ -210,7 +210,7 @@ impl RedPandaBuilder {
     /// Client group session and failure detection timeout.
     ///
     /// Default: 45000ms
-    pub fn set_session_timeout_ms(&mut self, timeout_ms: u32) -> &mut RedPandaBuilder {
+    pub fn set_session_timeout_ms(&mut self, timeout_ms: u32) -> &mut RedpandaBuilder {
         self.client_config
             .set("session.timeout.ms", timeout_ms.to_string());
 
@@ -220,7 +220,7 @@ impl RedPandaBuilder {
     /// Set the logging level of rdkafka
     ///
     /// TODO: This doesn't seem to be very effective at getting rdkafka to emit logs...
-    pub fn set_rdkafka_log_level(&mut self, level: RDKafkaLogLevel) -> &mut RedPandaBuilder {
+    pub fn set_rdkafka_log_level(&mut self, level: RDKafkaLogLevel) -> &mut RedpandaBuilder {
         self.client_config.set_log_level(level);
 
         self
@@ -229,7 +229,7 @@ impl RedPandaBuilder {
     /// Default timeout for network requests
     ///
     /// Default: 60000ms
-    pub fn set_socket_timeout_ms(&mut self, timeout_ms: u32) -> &mut RedPandaBuilder {
+    pub fn set_socket_timeout_ms(&mut self, timeout_ms: u32) -> &mut RedpandaBuilder {
         self.client_config
             .set("socket.timeout.ms", timeout_ms.to_string());
 
@@ -244,7 +244,7 @@ impl RedPandaBuilder {
     pub fn set_socket_connection_setup_timeout_ms(
         &mut self,
         timeout_ms: u32,
-    ) -> &mut RedPandaBuilder {
+    ) -> &mut RedpandaBuilder {
         self.client_config
             .set("socket.connection.setup.timeout.ms", timeout_ms.to_string());
 
@@ -253,7 +253,7 @@ impl RedPandaBuilder {
 
     /// Client group id string. All clients sharing the same group.id belong to the same group.
     /// group_id is a string, not an int
-    pub fn set_group_id(&mut self, group_id: &str) -> &mut RedPandaBuilder {
+    pub fn set_group_id(&mut self, group_id: &str) -> &mut RedpandaBuilder {
         self.client_config.set("group.id", group_id.to_string());
 
         self
@@ -263,7 +263,7 @@ impl RedPandaBuilder {
     ///
     /// For consumers, this is the time that fetch_metadata() will wait
     /// For producers, TODO
-    pub fn set_creation_timeout_ms(&mut self, timeout_ms: u64) -> &mut RedPandaBuilder {
+    pub fn set_creation_timeout_ms(&mut self, timeout_ms: u64) -> &mut RedpandaBuilder {
         self.creation_timeout = Timeout::After(Duration::from_millis(timeout_ms));
 
         self

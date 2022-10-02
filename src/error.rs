@@ -4,10 +4,10 @@ pub use rdkafka::error::*;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum RedPandaError {
-    #[error("RedPanda encountered a Kafka error")]
+pub enum RedpandaError {
+    #[error("Redpanda encountered a Kafka error")]
     Kafka(#[from] rdkafka::error::KafkaError),
-    #[error("unknown RedPanda error")]
+    #[error("unknown Redpanda error")]
     Unknown,
 }
 

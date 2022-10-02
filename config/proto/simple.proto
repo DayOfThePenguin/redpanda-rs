@@ -3,7 +3,7 @@ syntax = "proto3";
 package simple;
 
 //@@
-//@@   Sensor measurement for demonstrating Sensor -> RedPanda -> Model Microservice -> Triton -> RedPanda
+//@@   Sensor measurement for demonstrating Sensor -> Redpanda -> Model Microservice -> Triton -> Redpanda
 //@@
 message SimpleMeasurement {
     repeated int32 input0 = 1;
@@ -11,7 +11,7 @@ message SimpleMeasurement {
 }
 
 //@@
-//@@   Inference result for demonstrating Sensor -> RedPanda -> Model Microservice -> Triton -> RedPanda
+//@@   Inference result for demonstrating Sensor -> Redpanda -> Model Microservice -> Triton -> Redpanda
 //@@
 message SimpleInferenceResult {
     repeated int32 output0 = 1;

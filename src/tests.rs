@@ -7,24 +7,24 @@ use rdkafka::types::RDKafkaErrorCode;
 use tracing::{event, Level};
 use tracing_test::traced_test;
 
-use crate::builder::RedPandaBuilder;
+use crate::builder::RedpandaBuilder;
 
-/// Makes a new RedPandaBuilder with default parameters and a random group.id to avoid
+/// Makes a new RedpandaBuilder with default parameters and a random group.id to avoid
 /// group ID collisions between test runs
-pub fn gen_test_builder() -> RedPandaBuilder {
-    let mut b = RedPandaBuilder::default();
+pub fn gen_test_builder() -> RedpandaBuilder {
+    let mut b = RedpandaBuilder::default();
     let group_id = Alphanumeric.sample_string(&mut rand::thread_rng(), 16);
     b.set_group_id(&group_id);
 
     b
 }
 
-/// Does RedPandaConsumer fail to construct with the proper error code if the bootstrap_server doesn't exist?
+/// Does RedpandaConsumer fail to construct with the proper error code if the bootstrap_server doesn't exist?
 #[tokio::test]
 #[traced_test]
 pub async fn test_consumer_invalid_server() {
     let mut b = gen_test_builder();
-    // Assumes you don't have a RedPanda broker running on this port
+    // Assumes you don't have a Redpanda broker running on this port
     b.set_bootstrap_servers("localhost:9000");
     b.set_socket_timeout_ms(3000);
     b.set_socket_connection_setup_timeout_ms(3000);
@@ -39,12 +39,12 @@ pub async fn test_consumer_invalid_server() {
     assert!(err_code == RDKafkaErrorCode::BrokerTransportFailure);
 }
 
-/// Does RedPandaConsumer successfully construct if some of the bootstrap_servers are invalid?
+/// Does RedpandaConsumer successfully construct if some of the bootstrap_servers are invalid?
 #[tokio::test]
 #[traced_test]
 pub async fn test_consumer_some_bad_servers() {
     let mut b = gen_test_builder();
-    // Assumes you don't have a RedPanda broker running on port 9000
+    // Assumes you don't have a Redpanda broker running on port 9000
     // ...and that you DO have one running on port 9010
     b.set_bootstrap_servers("localhost:9000,localhost:9010");
     b.set_creation_timeout_ms(3000);
@@ -54,12 +54,12 @@ pub async fn test_consumer_some_bad_servers() {
     assert!(consumer.is_ok());
 }
 
-/// Does RedPandaConsumer successfully construct if bootstrap_servers is valid?
+/// Does RedpandaConsumer successfully construct if bootstrap_servers is valid?
 #[tokio::test]
 #[traced_test]
 pub async fn test_consumer_valid_server() {
     let mut b = gen_test_builder();
-    // Assumes you have a RedPanda broker running on 9010, 9011, 9012
+    // Assumes you have a Redpanda broker running on 9010, 9011, 9012
     b.set_bootstrap_servers("localhost:9010,localhost:9011,localhost:9012");
     b.set_creation_timeout_ms(3000);
     b.set_rdkafka_log_level(RDKafkaLogLevel::Info);
@@ -73,7 +73,7 @@ pub async fn test_consumer_valid_server() {
 #[traced_test]
 pub async fn test_consumer_invalid_topic() {
     let mut b = gen_test_builder();
-    // Assumes you have a RedPanda broker running on this port
+    // Assumes you have a Redpanda broker running on this port
     b.set_bootstrap_servers("localhost:9010");
     b.set_creation_timeout_ms(3000);
     b.set_rdkafka_log_level(RDKafkaLogLevel::Info);
@@ -90,7 +90,7 @@ pub async fn test_consumer_invalid_topic() {
 #[traced_test]
 pub async fn test_metadata_topic_names() {
     let mut b = gen_test_builder();
-    // Assumes you have a RedPanda broker running on this port
+    // Assumes you have a Redpanda broker running on this port
     b.set_bootstrap_servers("localhost:9010");
     b.set_creation_timeout_ms(3000);
     b.set_rdkafka_log_level(RDKafkaLogLevel::Info);
@@ -98,7 +98,7 @@ pub async fn test_metadata_topic_names() {
     let metadata = consumer.fetch_metadata().unwrap();
     let topic_names = metadata.topic_names();
 
-    // All RedPanda clusters contain at least these topic names
+    // All Redpanda clusters contain at least these topic names
     assert!(topic_names.contains(&"_schemas".to_owned()));
     assert!(topic_names.contains(&"__consumer_offsets".to_owned()));
 
@@ -112,7 +112,7 @@ pub async fn test_metadata_topic_names() {
 #[traced_test]
 pub async fn test_consumer_subscription() {
     let mut b = gen_test_builder();
-    // Assumes you have a RedPanda broker running on this port
+    // Assumes you have a Redpanda broker running on this port
     b.set_bootstrap_servers("localhost:9010");
     b.set_creation_timeout_ms(3000);
     b.set_rdkafka_log_level(RDKafkaLogLevel::Info);
@@ -131,12 +131,12 @@ pub async fn test_consumer_subscription() {
     assert_eq!(subscriptions, vec!["__consumer_offsets"]);
 }
 
-/// Does RedPandaProducer fail to construct with the proper error code if the bootstrap_server doesn't exist?
+/// Does RedpandaProducer fail to construct with the proper error code if the bootstrap_server doesn't exist?
 #[tokio::test]
 #[traced_test]
 pub async fn test_producer_invalid_server() {
     let mut b = gen_test_builder();
-    // Assumes you don't have a RedPanda broker running on this port
+    // Assumes you don't have a Redpanda broker running on this port
     b.set_bootstrap_servers("localhost:9000");
 
     let err = b.build_producer();
@@ -149,12 +149,12 @@ pub async fn test_producer_invalid_server() {
     assert!(err_code == RDKafkaErrorCode::BrokerTransportFailure);
 }
 
-/// Does RedPandaProducer successfully construct if some of the bootstrap_servers are invalid?
+/// Does RedpandaProducer successfully construct if some of the bootstrap_servers are invalid?
 #[tokio::test]
 #[traced_test]
 pub async fn test_producer_some_bad_servers() {
     let mut b = gen_test_builder();
-    // Assumes you don't have a RedPanda broker running on port 9000
+    // Assumes you don't have a Redpanda broker running on port 9000
     // ...and that you DO have one running on port 9010
     b.set_bootstrap_servers("localhost:9000,localhost:9010");
     let consumer = b.build_consumer();
@@ -162,24 +162,24 @@ pub async fn test_producer_some_bad_servers() {
     assert!(consumer.is_ok());
 }
 
-/// Does RedPandaProducer successfully construct if bootstrap_servers is valid?
+/// Does RedpandaProducer successfully construct if bootstrap_servers is valid?
 #[tokio::test]
 #[traced_test]
 pub async fn test_producer_valid_server() {
     let mut b = gen_test_builder();
-    // Assumes you have a RedPanda broker running on ports 9010, 9011, 9012
+    // Assumes you have a Redpanda broker running on ports 9010, 9011, 9012
     b.set_bootstrap_servers("localhost:9010,localhost:9011,localhost:9012");
     let producer = b.build_producer();
 
     assert!(producer.is_ok());
 }
 
-/// Does RedPandaProducer successfully produce to a valid topic that can be consumed by RedPandaConsumer?
+/// Does RedpandaProducer successfully produce to a valid topic that can be consumed by RedpandaConsumer?
 #[tokio::test]
 #[traced_test]
 pub async fn test_producer_consumer_valid_topic() {
     let mut b = gen_test_builder();
-    // Assumes you have a RedPanda broker running on ports 9010, 9011, 9012
+    // Assumes you have a Redpanda broker running on ports 9010, 9011, 9012
     b.set_bootstrap_servers("localhost:9010,localhost:9011,localhost:9012");
     let producer = b.build_producer().unwrap();
     let consumer = b.build_consumer().unwrap();
@@ -207,24 +207,24 @@ pub async fn test_producer_consumer_valid_topic() {
     event!(Level::INFO, "Deleted test topic");
 }
 
-/// Does RedPandaAdminClient fail to construct with the proper error code if the bootstrap_server doesn't exist?
+/// Does RedpandaAdminClient fail to construct with the proper error code if the bootstrap_server doesn't exist?
 #[tokio::test]
 #[traced_test]
 pub async fn test_admin_invalid_server() {
     let mut b = gen_test_builder();
-    // Assumes you don't have a RedPanda broker running on this port
+    // Assumes you don't have a Redpanda broker running on this port
     b.set_bootstrap_servers("localhost:9000");
     let err = b.build_admin_client().await;
 
     assert!(err.is_err());
 }
 
-/// Does RedPandaAdminClient successfully construct if some of the bootstrap_servers are invalid?
+/// Does RedpandaAdminClient successfully construct if some of the bootstrap_servers are invalid?
 #[tokio::test]
 #[traced_test]
 pub async fn test_admin_some_bad_servers() {
     let mut b = gen_test_builder();
-    // Assumes you don't have a RedPanda broker running on port 9000
+    // Assumes you don't have a Redpanda broker running on port 9000
     // ...and that you DO have one running on port 9010
     b.set_bootstrap_servers("localhost:9000,localhost:9010");
     let admin_client = b.build_admin_client().await;
@@ -232,24 +232,24 @@ pub async fn test_admin_some_bad_servers() {
     assert!(admin_client.is_ok());
 }
 
-/// Does RedPandaAdminClient successfully construct if bootstrap_servers is valid?
+/// Does RedpandaAdminClient successfully construct if bootstrap_servers is valid?
 #[tokio::test]
 #[traced_test]
 pub async fn test_admin_valid_server() {
     let mut b = gen_test_builder();
-    // Assumes you have a RedPanda broker running on ports 9010, 9011, 9012
+    // Assumes you have a Redpanda broker running on ports 9010, 9011, 9012
     b.set_bootstrap_servers("localhost:9010,localhost:9011,localhost:9012");
     let admin_client = b.build_admin_client().await;
 
     assert!(admin_client.is_ok());
 }
 
-/// Does RedPandaAdminClient successfully create + delete a topic
+/// Does RedpandaAdminClient successfully create + delete a topic
 #[tokio::test]
 #[traced_test]
 pub async fn test_admin_create_delete_topic() {
     let mut b = gen_test_builder();
-    // Assumes you have a RedPanda broker running on ports 9010, 9011, 9012
+    // Assumes you have a Redpanda broker running on ports 9010, 9011, 9012
     b.set_bootstrap_servers("localhost:9010,localhost:9011,localhost:9012");
     let admin_client = b.build_admin_client().await.unwrap();
 

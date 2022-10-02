@@ -6,25 +6,25 @@ use rdkafka::{
 };
 use tracing::{event, instrument, Level};
 
-use crate::metadata::RedPandaMetadata;
+use crate::metadata::RedpandaMetadata;
 
 pub use rdkafka::consumer::Consumer;
 
-pub struct RedPandaConsumer {
+pub struct RedpandaConsumer {
     pub consumer: StreamConsumer,
     request_timeout: Timeout,
 }
 
-impl RedPandaConsumer {
-    /// Create a new RedPandaConsumer, validating that the brokers respond to connections within timeout
+impl RedpandaConsumer {
+    /// Create a new RedpandaConsumer, validating that the brokers respond to connections within timeout
     #[instrument(skip(consumer))]
     pub fn new(consumer: StreamConsumer, request_timeout: Timeout) -> Result<Self, KafkaError> {
         match consumer.fetch_metadata(Option::None, request_timeout) {
             Ok(m) => {
-                let m: RedPandaMetadata = m.into();
+                let m: RedpandaMetadata = m.into();
                 event!(
                     Level::INFO,
-                    "Connected consumer to RedPanda cluster {:?}",
+                    "Connected consumer to Redpanda cluster {:?}",
                     m
                 );
                 m
@@ -39,7 +39,7 @@ impl RedPandaConsumer {
     }
 
     /// Get consumer metadata
-    pub fn fetch_metadata(&self) -> Result<RedPandaMetadata, KafkaError> {
+    pub fn fetch_metadata(&self) -> Result<RedpandaMetadata, KafkaError> {
         let metadata = self
             .consumer
             .fetch_metadata(Option::None, self.request_timeout)?

@@ -15,7 +15,7 @@ kafka:
       - topicName: simple-inference
         valueProtoType: simple.SimpleInferenceResult
     # These ^ protos won't show up in the schema registry, but they will apply correctly
-    # to the messages in the topic. Per Slack Thread in RedPanda/console w/ lead Console dev,
+    # to the messages in the topic. Per Slack Thread in Redpanda/console w/ lead Console dev,
     # as of 22.2, schema registry and manual mappings are separate. For schema registry to work,
     # you need a client (none of the Rust clients can) that is schema registry-aware so it knows
     # how to pack proto metadata into the record
