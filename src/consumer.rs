@@ -9,6 +9,7 @@ use tracing::{event, instrument, Level};
 use crate::metadata::RedpandaMetadata;
 
 pub use rdkafka::consumer::Consumer;
+pub use rdkafka::consumer::CommitMode;
 
 pub struct RedpandaConsumer {
     pub consumer: StreamConsumer,
