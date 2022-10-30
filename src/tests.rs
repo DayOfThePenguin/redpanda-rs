@@ -1,13 +1,13 @@
 use chrono::Utc;
 use rand::distributions::{Alphanumeric, DistString};
-use rdkafka::config::RDKafkaLogLevel;
-use rdkafka::consumer::Consumer;
-use rdkafka::message::Message;
-use rdkafka::types::RDKafkaErrorCode;
+use crate::{config::RDKafkaLogLevel, message::OwnedHeaders};
+use crate::consumer::Consumer;
+use crate::message::Message;
+use crate::types::RDKafkaErrorCode;
 use tracing::{event, Level};
 use tracing_test::traced_test;
 
-use crate::builder::RedpandaBuilder;
+use crate::{builder::RedpandaBuilder, producer::RedpandaRecord};
 
 /// Makes a new RedpandaBuilder with default parameters and a random group.id to avoid
 /// group ID collisions between test runs
@@ -193,6 +193,39 @@ pub async fn test_producer_consumer_valid_topic() {
         .send_result_topic_key_payload(topic_name, &key, &payload)
         .unwrap();
     r.await.unwrap().unwrap();
+    // event!(Level::INFO, "Produced message");
+    event!(Level::INFO, "{:?}", consumer.consumer.position().unwrap());
+    consumer.subscribe(&[topic_name]).unwrap();
+    event!(Level::INFO, "{:?}", consumer.consumer.position().unwrap());
+    let msg = consumer.recv().await.unwrap();
+    event!(Level::INFO, "Got message");
+    assert_eq!(msg.key().unwrap(), key);
+    assert_eq!(msg.payload().unwrap(), payload);
+    event!(Level::INFO, "{:?}", consumer.consumer.position().unwrap());
+
+    admin_client.delete_topic(topic_name).await.unwrap();
+    event!(Level::INFO, "Deleted test topic");
+}
+
+/// Does RedpandaRecord into FutureRecord conversion work for FutureProducer?
+#[tokio::test]
+#[traced_test]
+pub async fn test_producer_record() {
+    let mut b = gen_test_builder();
+    // Assumes you have a Redpanda broker running on ports 9010, 9011, 9012
+    b.set_bootstrap_servers("localhost:9010,localhost:9011,localhost:9012");
+    let producer = b.build_producer().unwrap();
+    let consumer = b.build_consumer().unwrap();
+    let admin_client = b.build_admin_client().await.unwrap();
+    let topic_name = "test_record_topic";
+    admin_client.create_topic(topic_name, 3, 3).await.unwrap();
+
+    let key = 1_u32.to_le_bytes().to_vec();
+    let payload = 2_u32.to_le_bytes().to_vec();
+    let r = RedpandaRecord::new(topic_name, key.clone(), payload.clone(), OwnedHeaders::new());
+    let delivery_future = producer.send_result(&r);
+
+    delivery_future.unwrap().await.unwrap().unwrap();
     // event!(Level::INFO, "Produced message");
     event!(Level::INFO, "{:?}", consumer.consumer.position().unwrap());
     consumer.subscribe(&[topic_name]).unwrap();

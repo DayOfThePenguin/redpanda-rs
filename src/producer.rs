@@ -12,6 +12,40 @@ type TracingProducer = FutureProducer<TracingProducerContext>;
 pub use rdkafka::producer::FutureRecord;
 pub use rdkafka::producer::Producer;
 
+
+pub struct RedpandaRecord {
+    topic: String,
+    key: Vec<u8>,
+    payload: Vec<u8>,
+    headers: OwnedHeaders,
+}
+
+impl RedpandaRecord {
+    /// Construct a new RedpandaRecord
+    pub fn new(topic: &str, key: Vec<u8>, payload: Vec<u8>, headers: OwnedHeaders) -> Self {
+        Self { 
+            topic: topic.to_owned(),
+            key,
+            payload,
+            headers,
+        }
+    }
+}
+
+impl<'a> From<&'a RedpandaRecord> for FutureRecord<'a, Vec<u8>, Vec<u8>> {
+    fn from(r: &'a RedpandaRecord) -> Self {
+        
+        FutureRecord {
+            topic: &r.topic,
+            partition: Option::None,
+            payload: Some(&r.payload),
+            key: Some(&r.key),
+            timestamp: Option::None,
+            headers: Some(r.headers.clone()),
+        }
+    }
+}
+
 /// Derive Clone is fine because the underlying rdkafka::producer::FutureProducer is meant
 /// to be cloned cheaply.
 /// ref: https://docs.rs/rdkafka/0.28.0/rdkafka/producer/struct.FutureProducer.html
@@ -38,6 +72,15 @@ impl RedpandaProducer {
             Err(e) => return Err(e),
         };
         Ok(Self { producer })
+    }
+
+    /// Re-implementation of FutureProducer.send_result that takes a RedpandaRecord instead of a FutureRecord
+    /// 
+    /// RedpandaRecords are normal structs that own all their data & are much nicer to pass around vs FutureRecords
+    /// that don't own the data in topic, payload, and key. These design decisions in rdkafka make it necessary
+    /// to have a separate RedpandaRecord struct and implement the From trait
+    pub fn send_result<'a>(&self, record: &'a RedpandaRecord) -> Result<DeliveryFuture, (KafkaError, FutureRecord<'a, Vec<u8>, Vec<u8>>)> {     
+        self.producer.send_result(record.into())
     }
 
     pub fn send_result_topic_key_payload(

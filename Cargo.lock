@@ -90,21 +90,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5827cebf4670468b8772dd191856768aedcb1b0278a04f989f7766351917b9dc"
 
 [[package]]
-name = "curl-sys"
-version = "0.4.56+curl-7.83.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6093e169dd4de29e468fa649fbae11cdcd5551c81fe5bf1b0677adad7ef3d26f"
-dependencies = [
- "cc",
- "libc",
- "libz-sys",
- "openssl-sys",
- "pkg-config",
- "vcpkg",
- "winapi",
-]
-
-[[package]]
 name = "futures"
 version = "0.3.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -377,19 +362,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2f7254b99e31cad77da24b08ebf628882739a608578bb1bcdfc1f9c21260d7c0"
 
 [[package]]
-name = "openssl-sys"
-version = "0.9.76"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5230151e44c0f05157effb743e8d517472843121cf9243e8b81393edb5acd9ce"
-dependencies = [
- "autocfg",
- "cc",
- "libc",
- "pkg-config",
- "vcpkg",
-]
-
-[[package]]
 name = "parking_lot"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -497,8 +469,9 @@ dependencies = [
 
 [[package]]
 name = "rdkafka"
-version = "0.28.0"
-source = "git+https://github.com/gyfis/rust-rdkafka?branch=g/librdkafka-1.9.0#b08813624516325d541af1353cd0c0157a75febf"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd7c5d6d17442bcb9f943aae96d67d98c6d36af60442dd5da62aaa7fcbb25c48"
 dependencies = [
  "futures-channel",
  "futures-util",
@@ -515,11 +488,11 @@ dependencies = [
 
 [[package]]
 name = "rdkafka-sys"
-version = "4.3.0+1.9.0"
-source = "git+https://github.com/gyfis/rust-rdkafka?branch=g/librdkafka-1.9.0#b08813624516325d541af1353cd0c0157a75febf"
+version = "4.3.0+1.9.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d222a401698c7f2010e3967353eae566d9934dcda49c29910da922414ab4e3f4"
 dependencies = [
  "cmake",
- "curl-sys",
  "libc",
  "libz-sys",
  "num_enum",
@@ -538,7 +511,7 @@ dependencies = [
 
 [[package]]
 name = "redpanda"
-version = "0.2.12"
+version = "0.2.13"
 dependencies = [
  "chrono",
  "futures",

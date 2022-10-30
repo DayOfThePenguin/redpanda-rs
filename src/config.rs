@@ -1,4 +1,5 @@
 use std::fmt::Display;
+pub use rdkafka::config::RDKafkaLogLevel;
 
 pub enum CompressionType {
     /// No compression
