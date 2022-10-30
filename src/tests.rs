@@ -304,11 +304,21 @@ pub async fn test_admin_create_delete_topic() {
 
 #[test]
 pub fn test_key_vec_ser_de() {
+    // Manual creation
     let timestamp = Utc::now();
     let ser = crate::serialize_key(timestamp);
     let de = crate::deserialize_key(&ser).unwrap();
 
     assert_eq!(de, timestamp);
+
+    // Automatic creation with key()
+    // 1 second is a sufficient tolerance for the successive lines of code to run... 
+    let tolerance_sec = 1;
+    let ser = crate::key();
+    let now = Utc::now();
+    let de = crate::deserialize_key(&ser).unwrap();
+    assert!(de.timestamp() <=  now.timestamp() + tolerance_sec);
+
 
     // verify invalid length bytes don't deserialize and throw an error
     let invalid_ser: Vec<u8> = vec![1, 2, 3];

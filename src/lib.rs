@@ -27,8 +27,16 @@ pub mod types {
     pub use rdkafka::util::Timeout;
 }
 
+/// Return UTC datetime with nanosecond precision as a byte Vec
+/// 
+/// This will be used as keys across Redpanda topics
+pub fn key() -> Vec<u8> {
+    let now = Utc::now();
+    serialize_key(now)
+}
+
 /// Serialize a UTC DateTime with nanosecond precision to a byte Vec
-pub fn serialize_key(key: DateTime<Utc>) -> Vec<u8> {
+fn serialize_key(key: DateTime<Utc>) -> Vec<u8> {
     key.timestamp_nanos().to_le_bytes().to_vec()
 }
 
