@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
         "chrono",
+        "datetime",
         "idempotence",
         "librdkafka",
         "nanos",

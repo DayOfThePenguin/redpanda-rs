@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   redpanda-0:
-    image: vectorized/redpanda:v22.2.7
+    image: vectorized/redpanda:v22.3.5
     container_name: panda-0
     ports:
       - '9010:9010'
@@ -22,7 +22,7 @@ services:
       - --advertise-rpc-addr redpanda-0:33145
 
   redpanda-1:
-    image: vectorized/redpanda:v22.2.7
+    image: vectorized/redpanda:v22.3.5
     container_name: panda-1
     ports:
       - '9011:9011'
@@ -44,7 +44,7 @@ services:
       - redpanda-0
 
   redpanda-2:
-    image: vectorized/redpanda:v22.2.7
+    image: vectorized/redpanda:v22.3.5
     container_name: panda-2
     ports:
       - '9012:9012'
