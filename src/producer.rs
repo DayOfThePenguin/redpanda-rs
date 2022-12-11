@@ -15,7 +15,7 @@ pub use rdkafka::producer::Producer;
 #[derive(Debug, Clone)]
 pub struct RedpandaRecord {
     topic: String,
-    key: Vec<u8>,
+    key: Option<Vec<u8>>,
     payload: Vec<u8>,
     headers: OwnedHeaders,
     created_timestamp: Timestamp,
@@ -25,7 +25,7 @@ impl RedpandaRecord {
     /// Construct a new RedpandaRecord
     /// 
     /// The timestamp of the message is set to the time the RedpandaRecord is created (when this function is called)
-    pub fn new(topic: &str, key: Vec<u8>, payload: Vec<u8>, headers: OwnedHeaders) -> Self {
+    pub fn new(topic: &str, key: Option<Vec<u8>>, payload: Vec<u8>, headers: OwnedHeaders) -> Self {
         Self { 
             topic: topic.to_owned(),
             key,
@@ -41,13 +41,12 @@ impl<'a> From<&'a RedpandaRecord> for FutureRecord<'a, Vec<u8>, Vec<u8>> {
     /// 
     /// Timestamp is set to create time of the RedpandaRecord. Kafka timestamps are in UTC milliseconds
     /// since Unix epoch
-    fn from(r: &'a RedpandaRecord) -> Self {
-        
+    fn from(r: &'a RedpandaRecord) -> Self { 
         FutureRecord {
             topic: &r.topic,
             partition: Option::None,
             payload: Some(&r.payload),
-            key: Some(&r.key),
+            key: r.key.as_ref(),
             timestamp: r.created_timestamp.to_millis(),
             headers: Some(r.headers.clone()),
         }

@@ -220,12 +220,18 @@ pub async fn test_producer_record() {
     let topic_name = "test_record_topic";
     admin_client.create_topic(topic_name, 3, 3).await.unwrap();
 
+    // Case key is Option::Some
     let key = 1_u32.to_le_bytes().to_vec();
     let payload = 2_u32.to_le_bytes().to_vec();
-    let r = RedpandaRecord::new(topic_name, key.clone(), payload.clone(), OwnedHeaders::new());
+    let r = RedpandaRecord::new(topic_name, Some(key.clone()), payload.clone(), OwnedHeaders::new());
     let delivery_future = producer.send_result(&r);
-
     delivery_future.unwrap().await.unwrap().unwrap();
+
+    // Case key is Option::None
+    let r = RedpandaRecord::new(topic_name, None, payload.clone(), OwnedHeaders::new());
+    let delivery_future = producer.send_result(&r);
+    delivery_future.unwrap().await.unwrap().unwrap();
+
     // event!(Level::INFO, "Produced message");
     event!(Level::INFO, "{:?}", consumer.consumer.position().unwrap());
     consumer.subscribe(&[topic_name]).unwrap();
