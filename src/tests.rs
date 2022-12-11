@@ -1,6 +1,5 @@
-use chrono::Utc;
 use rand::distributions::{Alphanumeric, DistString};
-use crate::{config::RDKafkaLogLevel, message::OwnedHeaders};
+use crate::config::RDKafkaLogLevel;
 use crate::consumer::Consumer;
 use crate::message::Message;
 use crate::types::RDKafkaErrorCode;
@@ -187,19 +186,18 @@ pub async fn test_producer_consumer_valid_topic() {
     let topic_name = "test_producer_topic";
     admin_client.create_topic(topic_name, 3, 3).await.unwrap();
 
-    let key = 1_u32.to_le_bytes().to_vec();
+    let key = Some(1_u32.to_le_bytes().to_vec());
     let payload = 2_u32.to_le_bytes().to_vec();
-    let r = producer
-        .send_result_topic_key_payload(topic_name, &key, &payload)
-        .unwrap();
+    let record = RedpandaRecord::new(topic_name, key.clone(), payload.clone(), None);
+    let r = producer.send_result(&record).unwrap();
     r.await.unwrap().unwrap();
-    // event!(Level::INFO, "Produced message");
+
     event!(Level::INFO, "{:?}", consumer.consumer.position().unwrap());
     consumer.subscribe(&[topic_name]).unwrap();
     event!(Level::INFO, "{:?}", consumer.consumer.position().unwrap());
     let msg = consumer.recv().await.unwrap();
     event!(Level::INFO, "Got message");
-    assert_eq!(msg.key().unwrap(), key);
+    assert_eq!(msg.key().unwrap(), key.unwrap());
     assert_eq!(msg.payload().unwrap(), payload);
     event!(Level::INFO, "{:?}", consumer.consumer.position().unwrap());
 
@@ -223,12 +221,12 @@ pub async fn test_producer_record() {
     // Case key is Option::Some
     let key = 1_u32.to_le_bytes().to_vec();
     let payload = 2_u32.to_le_bytes().to_vec();
-    let r = RedpandaRecord::new(topic_name, Some(key.clone()), payload.clone(), OwnedHeaders::new());
+    let r = RedpandaRecord::new(topic_name, Some(key.clone()), payload.clone(), None);
     let delivery_future = producer.send_result(&r);
     delivery_future.unwrap().await.unwrap().unwrap();
 
     // Case key is Option::None
-    let r = RedpandaRecord::new(topic_name, None, payload.clone(), OwnedHeaders::new());
+    let r = RedpandaRecord::new(topic_name, None, payload.clone(), None);
     let delivery_future = producer.send_result(&r);
     delivery_future.unwrap().await.unwrap().unwrap();
 
@@ -307,27 +305,3 @@ pub async fn test_admin_create_delete_topic() {
 }
 
 // TODO: Test failures on invalid topic creation parameters (invalid name (topic already exists), replication factor > num_brokers, replication factor 0, partitions 0)
-
-#[test]
-pub fn test_key_vec_ser_de() {
-    // Manual creation
-    let timestamp = Utc::now();
-    let ser = crate::serialize_key(timestamp);
-    let de = crate::deserialize_key(&ser).unwrap();
-
-    assert_eq!(de, timestamp);
-
-    // Automatic creation with key()
-    // 1 second is a sufficient tolerance for the successive lines of code to run... 
-    let tolerance_sec = 1;
-    let ser = crate::key();
-    let now = Utc::now();
-    let de = crate::deserialize_key(&ser).unwrap();
-    assert!(de.timestamp() <=  now.timestamp() + tolerance_sec);
-
-
-    // verify invalid length bytes don't deserialize and throw an error
-    let invalid_ser: Vec<u8> = vec![1, 2, 3];
-    let key_err = crate::deserialize_key(&invalid_ser);
-    assert!(key_err.is_err());
-}

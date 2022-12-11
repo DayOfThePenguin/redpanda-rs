@@ -6,7 +6,6 @@ services:
     container_name: panda-0
     ports:
       - '9010:9010'
-      - '8081:8081' # schema registry port that Redpanda Console connects to...look in config/console-config.yaml
     command:
       - redpanda
       - start
@@ -71,26 +70,9 @@ services:
     restart: on-failure
     volumes:
       - ./config/console-config.yaml:/docker-volume/config.yaml:rw
-      - ./config/proto:/docker-volume/proto
     environment:
       CONFIG_FILEPATH: /docker-volume/config.yaml
     ports:
       - "8080:8080"
     depends_on:
       - redpanda-0
-
-  minio:
-    container_name: minio-panda
-    image: quay.io/minio/minio:latest
-    restart: unless-stopped
-    shm_size: 2gb
-    environment:
-      MINIO_ROOT_USER: redpanda
-      MINIO_ROOT_PASSWORD: panda12345
-      MINIO_DOMAIN: minio-s3
-      MINIO_REGION_NAME: panda-region
-    ports: 
-      - "9000:9000"
-      - "9001:9001"
-    entrypoint: sh
-    command: -c 'mkdir -p /data/panda-bucket && minio server /data --console-address "0.0.0.0:9001"'
