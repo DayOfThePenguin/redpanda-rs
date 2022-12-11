@@ -1,10 +1,9 @@
 use crate::{builder::TracingProducerContext, metadata::RedpandaMetadata};
-use chrono::{Utc, DateTime};
 use rdkafka::{
     error::KafkaError,
     message::OwnedHeaders,
     producer::{DeliveryFuture, FutureProducer},
-    util::Timeout,
+    util::Timeout, Timestamp,
 };
 use tracing::{event, instrument, Level};
 
@@ -13,50 +12,13 @@ type TracingProducer = FutureProducer<TracingProducerContext>;
 pub use rdkafka::producer::FutureRecord;
 pub use rdkafka::producer::Producer;
 
-/// Represent the time a RedpandaRecord is created (when RedpandaRecord::new() is called)
-/// 
-/// UTC nanoseconds since epoch
-#[derive(Debug, Clone, Copy)]
-pub struct TimestampNanos {
-    /// UTC DateTime since epoch
-    timestamp: DateTime<Utc>,
-}
-
-impl Default for TimestampNanos {
-    /// Alias for TimestampNanos::now()
-    fn default() -> Self {
-        TimestampNanos::now()
-    }
-}
-
-impl TimestampNanos {
-    /// Alias for TimestampNanos::now()
-    pub fn new() -> Self {
-        TimestampNanos::now()
-    }
-
-    /// Current UTC nanoseconds since epoch
-    pub fn now() -> Self {
-        TimestampNanos {
-            timestamp: Utc::now(),
-        }
-    }
-
-    /// Get the UTC timestamp associated with this TimestampNanos as an i64
-    /// 
-    /// Used to include the timestamp in a RedpandaRecord
-    pub fn timestamp_nanos(&self) -> i64 {
-        self.timestamp.timestamp_nanos()
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct RedpandaRecord {
     topic: String,
     key: Vec<u8>,
     payload: Vec<u8>,
     headers: OwnedHeaders,
-    created_timestamp: TimestampNanos,
+    created_timestamp: Timestamp,
 }
 
 impl RedpandaRecord {
@@ -69,7 +31,7 @@ impl RedpandaRecord {
             key,
             payload,
             headers,
-            created_timestamp: TimestampNanos::now(),
+            created_timestamp: Timestamp::now(),
         }
     }
 }
@@ -77,7 +39,8 @@ impl RedpandaRecord {
 impl<'a> From<&'a RedpandaRecord> for FutureRecord<'a, Vec<u8>, Vec<u8>> {
     /// Create a FutureRecord that lives as long as the RedpandaRecord it is created from
     /// 
-    /// Timestamp is set to create time of the RedpandaRecord
+    /// Timestamp is set to create time of the RedpandaRecord. Kafka timestamps are in UTC milliseconds
+    /// since Unix epoch
     fn from(r: &'a RedpandaRecord) -> Self {
         
         FutureRecord {
@@ -85,7 +48,7 @@ impl<'a> From<&'a RedpandaRecord> for FutureRecord<'a, Vec<u8>, Vec<u8>> {
             partition: Option::None,
             payload: Some(&r.payload),
             key: Some(&r.key),
-            timestamp: Some(r.created_timestamp.timestamp_nanos()),
+            timestamp: r.created_timestamp.to_millis(),
             headers: Some(r.headers.clone()),
         }
     }

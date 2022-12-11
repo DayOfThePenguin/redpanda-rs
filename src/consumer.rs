@@ -50,7 +50,8 @@ impl RedpandaConsumer {
     }
 
     /// Subscribe the consumer to an array of topic names, checking that the topic names are valid
-    /// TODO: will this work multiple times in series? Will subsequent replace existing topics or append them?
+    /// 
+    /// Subsequent calls will replace existing topics and only subscribe to the new topics provided
     #[instrument(skip(self))]
     pub fn subscribe(&self, topic_names: &[&str]) -> Result<(), KafkaError> {
         let cluster_topic_names = self.fetch_metadata()?.topic_names();
@@ -88,7 +89,7 @@ impl RedpandaConsumer {
         self.consumer.recv().await
     }
 
-    /// Create a message stream
+    /// Create a message stream from the subscribed topics
     pub fn stream(&self) -> MessageStream {
         self.consumer.stream()
     }
