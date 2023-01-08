@@ -2,7 +2,7 @@ use crate::{builder::TracingProducerContext, metadata::RedpandaMetadata};
 use rdkafka::{
     error::KafkaError,
     message::OwnedHeaders,
-    producer::{DeliveryFuture, FutureProducer},
+    producer::FutureProducer,
     util::Timeout, Timestamp,
 };
 use tracing::{event, instrument, Level};
@@ -11,6 +11,7 @@ type TracingProducer = FutureProducer<TracingProducerContext>;
 
 pub use rdkafka::producer::FutureRecord;
 pub use rdkafka::producer::Producer;
+pub use rdkafka::producer::DeliveryFuture;
 
 #[derive(Debug, Clone)]
 pub struct RedpandaRecord {
@@ -55,7 +56,11 @@ impl<'a> From<&'a RedpandaRecord> for FutureRecord<'a, Vec<u8>, Vec<u8>> {
 
 /// Derive Clone is fine because the underlying rdkafka::producer::FutureProducer is meant
 /// to be cloned cheaply.
-/// ref: https://docs.rs/rdkafka/0.28.0/rdkafka/producer/struct.FutureProducer.html
+/// 
+/// rdkafka::producer::FutureProducer docs:
+/// "It [a FutureProducer] can be cheaply cloned to get a reference to the same underlying producer."
+/// 
+/// ref: https://docs.rs/rdkafka/latest/rdkafka/producer/struct.FutureProducer.html
 #[derive(Clone)]
 pub struct RedpandaProducer {
     pub producer: TracingProducer,

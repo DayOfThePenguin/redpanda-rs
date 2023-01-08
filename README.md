@@ -16,17 +16,11 @@ Change segment size:
 
 ## Start local Redpanda and MinIO cluster
 
-`docker-compose up`
+`docker compose up`
 
 ### Check the broker status on Redpanda Console
 
 `http://localhost:8080`
-
-### Set up S3 Archiving
-
-Archive all the topics in your cluster to local S3 storage using MinIO!
-
-Run `./configure_cluster.sh` in the `config` directory.
 
 ## References
 
